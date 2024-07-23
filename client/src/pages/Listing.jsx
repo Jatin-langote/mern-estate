@@ -112,7 +112,7 @@ function Listing() {
               </p>
               {listing.offer && (
                 <p className="bg-green-900 w-full max-w-[200px] text-white text-center p-1 rounded-md">
-                  ${+listing.regularPrice - +listing.discountPrice} Off
+                  ${+listing.regularPrice - +listing.discountPrice} OFF
                   {/* {" (" + (100 - (listing.discountPrice / listing.regularPrice * 100)).toFixed(2) + "%" + ")"} */}
                 </p>
               )}
