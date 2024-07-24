@@ -9,7 +9,7 @@ export default function Header() {
   const navigate = useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
-    const urlParams = new URLSearchParmas(window.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     urlParams.set("searchTerm", searchTerm);
     const searchQuery = urlParams.toString();
     navigate(`/search?${searchQuery}`);
@@ -17,7 +17,7 @@ export default function Header() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const searchTermFromUrl = urlParams.get("sea");
+    const searchTermFromUrl = urlParams.get("searchTerm");
     if (searchTermFromUrl) {
       setSearchTerm(searchTermFromUrl);
     }
