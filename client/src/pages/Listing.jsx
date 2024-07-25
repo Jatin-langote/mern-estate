@@ -1,108 +1,102 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore from "swiper";
+import { useSelector } from "react-redux";
 import { Navigation } from "swiper/modules";
 import "swiper/css/bundle";
 import {
+  FaBath,
   FaBed,
   FaChair,
+  FaMapMarkedAlt,
   FaMapMarkerAlt,
   FaParking,
   FaShare,
 } from "react-icons/fa";
-import { GiSofa } from "react-icons/gi";
-import { GiKitchenScale } from "react-icons/gi";
-import { BsSignNoParkingFill } from "react-icons/bs";
-import { useSelector } from "react-redux";
-import Contact from "./Contact";
+import Contact from "../components/Contact";
 
-function Listing() {
+// https://sabe.io/blog/javascript-format-numbers-commas#:~:text=The%20best%20way%20to%20format,format%20the%20number%20with%20commas.
+
+export default function Listing() {
   SwiperCore.use([Navigation]);
-  const [listing, setListing] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [listing, setListing] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [contact, setContact] = useState(false);
-  const { currentUser } = useSelector((state) => state.user);
+  const [contact, setContact] = useState(true);
   const params = useParams();
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     const fetchListing = async () => {
       try {
         setLoading(true);
-        let res = await fetch(`/api/listing/get/${params.listingId}`);
-        let data = await res.json();
+        const res = await fetch(`/api/listing/get/${params.listingId}`);
+        const data = await res.json();
         if (data.success === false) {
-          // console.log(data.message)
-          setError(data.message);
+          setError(true);
           setLoading(false);
           return;
         }
         setListing(data);
         setLoading(false);
+        setError(false);
       } catch (error) {
-        setError(error.message);
+        setError(true);
         setLoading(false);
       }
     };
     fetchListing();
-  }, []);
+  }, [params.listingId]);
 
   return (
     <main>
-      {loading && <p className="text-2xl text-center my-7">Loading...</p>}
+      {loading && <p className="text-center my-7 text-2xl">Loading...</p>}
       {error && (
-        <p className="text-2xl text-red-600 font-medium text-center my-7">
-          {error}
-        </p>
+        <p className="text-center my-7 text-2xl">Something went wrong!</p>
       )}
       {listing && !loading && !error && (
         <div>
-          <div className="relative">
-            <Swiper navigation>
-              {listing.imageUrls.map((url) => (
-                <SwiperSlide key={url}>
-                  <div
-                    className="h-[400px] sm:h-[550px]"
-                    style={{
-                      background: `url(${url}) center no-repeat`,
-                      backgroundSize: "cover",
-                    }}
-                  ></div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            <div className="absolute top-[5%] right-[3%] z-10 border rounded-full w-8 sm:w-12 h-8 sm:h-12 flex justify-center items-center bg-slate-100 cursor-pointer">
-              <FaShare
-                className="text-slate-500"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  setCopied(true);
-                  setTimeout(() => {
-                    setCopied(false);
-                  }, 1000);
-                }}
-              />
-            </div>
-            {copied && (
-              <p className="absolute top-[14%] sm:top-[16%] right-[5%] z-10 rounded-md bg-slate-100 p-2">
-                Link copied!
-              </p>
-            )}
+          <Swiper navigation>
+            {listing.imageUrls.map((url) => (
+              <SwiperSlide key={url}>
+                <div
+                  className="h-[550px]"
+                  style={{
+                    background: `url(${url}) center no-repeat`,
+                    backgroundSize: "cover",
+                  }}
+                ></div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+          <div className="fixed top-[13%] right-[3%] z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-100 cursor-pointer">
+            <FaShare
+              className="text-slate-500"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setCopied(true);
+                setTimeout(() => {
+                  setCopied(false);
+                }, 2000);
+              }}
+            />
           </div>
-          <div className="flex flex-col max-w-4xl mx-auto p-3 mt-2 mb-7 sm:my-7 gap-4">
-            <p className="text-xl sm:text-2xl font-semibold">
-              {listing.name} {" - "}
-              <span className="text-base">
-                $
-                {listing.offer
-                  ? listing.discountPrice.toLocaleString("en-US")
-                  : listing.regularPrice.toLocaleString("en-US")}
-                {listing.type === "rent" && " / month"}
-              </span>
+          {copied && (
+            <p className="fixed top-[23%] right-[5%] z-10 rounded-md bg-slate-100 p-2">
+              Link copied!
             </p>
-            <p className="flex items-center gap-2 text-slate-600  text-sm">
+          )}
+          <div className="flex flex-col max-w-4xl mx-auto p-3 my-7 gap-4">
+            <p className="text-2xl font-semibold">
+              {listing.name} - ${" "}
+              {listing.offer
+                ? listing.discountPrice.toLocaleString("en-US")
+                : listing.regularPrice.toLocaleString("en-US")}
+              {listing.type === "rent" && " / month"}
+            </p>
+            <p className="flex items-center mt-6 gap-2 text-slate-600  text-sm">
               <FaMapMarkerAlt className="text-green-700" />
               {listing.address}
             </p>
@@ -113,7 +107,6 @@ function Listing() {
               {listing.offer && (
                 <p className="bg-green-900 w-full max-w-[200px] text-white text-center p-1 rounded-md">
                   ${+listing.regularPrice - +listing.discountPrice} OFF
-                  {/* {" (" + (100 - (listing.discountPrice / listing.regularPrice * 100)).toFixed(2) + "%" + ")"} */}
                 </p>
               )}
             </div>
@@ -124,23 +117,18 @@ function Listing() {
             <ul className="text-green-900 font-semibold text-sm flex flex-wrap items-center gap-4 sm:gap-6">
               <li className="flex items-center gap-1 whitespace-nowrap ">
                 <FaBed className="text-lg" />
-                {listing.bedroom + (listing.bedroom > 1 ? " beds" : " bed")}
+                {listing.bedrooms > 1
+                  ? `${listing.bedrooms} beds `
+                  : `${listing.bedrooms} bed `}
               </li>
               <li className="flex items-center gap-1 whitespace-nowrap ">
-                <GiSofa className="text-lg" />
-                {listing.hall + (listing.hall > 1 ? " halls" : " hall")}
+                <FaBath className="text-lg" />
+                {listing.bathrooms > 1
+                  ? `${listing.bathrooms} baths `
+                  : `${listing.bathrooms} bath `}
               </li>
               <li className="flex items-center gap-1 whitespace-nowrap ">
-                <GiKitchenScale className="text-lg" />
-                {listing.kitchen +
-                  (listing.kitchen > 1 ? " kitchens" : " kitchen")}
-              </li>
-              <li className="flex items-center gap-1 whitespace-nowrap ">
-                {listing.parking ? (
-                  <FaParking className="text-lg" />
-                ) : (
-                  <BsSignNoParkingFill />
-                )}
+                <FaParking className="text-lg" />
                 {listing.parking ? "Parking spot" : "No Parking"}
               </li>
               <li className="flex items-center gap-1 whitespace-nowrap ">
@@ -148,10 +136,10 @@ function Listing() {
                 {listing.furnished ? "Furnished" : "Unfurnished"}
               </li>
             </ul>
-            {listing && currentUser._id !== listing.userRef && !contact && (
+            {currentUser && listing.userRef !== currentUser._id && !contact && (
               <button
                 onClick={() => setContact(true)}
-                className="w-full border p-3 rounded-lg uppercase text-white bg-slate-700 hover:opacity-95"
+                className="bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 p-3"
               >
                 Contact landlord
               </button>
@@ -163,5 +151,3 @@ function Listing() {
     </main>
   );
 }
-
-export default Listing;
